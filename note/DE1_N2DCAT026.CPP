@@ -41,7 +41,7 @@ void F1(int arrA[], int& sizeA, int arrB[], int& sizeB)
 			}
 		}
 	int cnt = 0;
-	for (int i= 0; i < sizeB; i++)
+	for (int i = 0; i < sizeB; i++)
 		if (isPrime[arrB[i]] == false)
 			++cnt, isPrime[arrB[i]] = true;
 	sizeB = cnt;
