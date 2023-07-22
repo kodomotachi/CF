@@ -1,16 +1,96 @@
 #include <bits/stdc++.h>
+ 
 using namespace std;
-
-int main()
-{
-	cin.tie(0) -> sync_with_stdio(0);
-	int n;
-	cin >> n;
-	int a[n];
-	for (int &x : a)
-		cin >> x;
-	sort(a, a + n);
-	for (int x : a)
-		cout << x << " ";
-	return 0;
+ 
+const int inf  = 1e9 + 7;
+const int maxN = 2e5 + 7;
+ 
+int n, q;
+int a[maxN];
+long long st[4 * maxN], lazy[4 * maxN];
+ 
+void build(int id, int l, int r) {
+    if (l == r) {
+        st[id] = a[l];
+        return;
+    }
+    int mid = l + r >> 1;
+    build(2 * id, l, mid);
+    build(2 * id + 1, mid + 1, r);
+    st[id] = st[2 * id] + st[2 * id + 1];
 }
+ 
+// Cập nhật nút đang xét và đẩy giá trị lazy xuống các nút con
+void fix(int id, int l, int r) {
+    if (!lazy[id]) return;
+    st[id] += (r - l + 1) * lazy[id];
+    
+    // Nếu id không phải là nút lá thì đẩy giá trị xuống các nút con
+    if (l != r){
+        lazy[2 * id] += ((r - l + 1) / 2) * lazy[id];
+        lazy[2 * id + 1] += ((r - l + 1) / 2) * lazy[id];
+    }
+    
+    lazy[id] = 0;
+}
+ 
+void update(int id, int l, int r, int u, int v, int val) {
+    fix(id, l, r);
+    if (l > v || r < u) return;
+    if (u <= l && r <= v) {
+        /* Khi cài đặt, ta LUÔN ĐẢM BẢO giá trị của nút được cập nhật ĐỒNG THỜI với
+        giá trị Lazy Propagation. Như vậy sẽ tránh sai sót. */
+        lazy[id] += (r - l + 1) * val;
+        fix(id, l, r);
+        return;
+    }
+    int mid = l + r >> 1;
+    update(2 * id, l, mid, u, v, val);
+    update(2 * id + 1, mid + 1, r, u, v, val);
+    st[id] = st[2 * id] + st[2 * id + 1];
+}
+ 
+long long get(int id, int l, int r, int u, int v) {
+    fix(id, l, r);
+    if (l >  v || r <  u) return 0;
+    if (l >= u && r <= v) return st[id];
+ 
+    int mid  = l + r >> 1;
+    long long get1 = get(2 * id, l, mid, u, v);
+    long long get2 = get(2 * id + 1, mid + 1, r, u, v);
+    return get1 + get2;
+}
+ 
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    cin >> n >> q;
+    for (int i = 1; i <= n; ++i) cin >> a[i];
+    build(1, 1, n);
+    cout << "\n";
+    for (int i = 1; i <= 4 * n; i++)
+        cout << st[i] << " ";
+    cout << "\n";
+    while (q--)
+	{
+		int type, l, r, val;
+		cin >> type;
+		if (type == 1)
+		{
+			cin >> l >> r >> val;
+			update(1, 1, n, l, r, val);
+            cout << "\n";
+            for (int i = 1; i <= 4 * n; i++)
+                cout << st[i] << " ";
+            cout << "\n";
+            for (int i = 1; i <= 4 * n; i++)
+                cout << lazy[i] << " ";
+            cout << "\n";
+        }
+        else
+		{
+			cin >> l >> r;
+			cout << get(1, 1, n, l, r) << "\n";
+		}
+	}
+}
+// segment tree to update segment and process add in segment
